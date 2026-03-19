@@ -1,7 +1,14 @@
-import { SignIn, UserButton, useAuth } from '@clerk/react'
-import { AppShell, ChatPanel, type ChatMessage } from '@boriskulakhmetov-aidigital/design-system'
+import { AppShell, ChatPanel } from '@boriskulakhmetov-aidigital/design-system'
+import type { ChatMessage } from '@boriskulakhmetov-aidigital/design-system'
+import { createClient } from '@supabase/supabase-js'
 import { useState } from 'react'
 import './App.css'
+
+const supabaseConfig = import.meta.env.VITE_SUPABASE_URL ? {
+  url: import.meta.env.VITE_SUPABASE_URL as string,
+  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  createClient: createClient as any,
+} : undefined
 
 // TODO: Replace with your app's sidebar component
 function PlaceholderSidebar() {
@@ -14,32 +21,42 @@ function PlaceholderSidebar() {
   )
 }
 
-export default function App() {
+interface AppProps {
+  auth: {
+    SignIn: any
+    UserButton: any
+    useAuth: any
+  }
+}
+
+export default function App({ auth }: AppProps) {
   return (
     <AppShell
       appTitle="Your App Name"        // TODO: Change this
       activityLabel="Session"          // TODO: "Audit" | "Session" | "Scan"
-      detailEndpoint="get-session"     // TODO: Match your Netlify function name
-      auth={{ SignIn, UserButton, useAuth }}
+      auth={auth}
+      supabaseConfig={supabaseConfig}
+      helpUrl="/help"
       sidebar={<PlaceholderSidebar />}
     >
-      {({ authFetch }) => <MainContent authFetch={authFetch} />}
+      {({ supabase, authFetch, userStatus, isAdmin }) => (
+        <MainContent authFetch={authFetch} />
+      )}
     </AppShell>
   )
 }
 
-function MainContent({ authFetch: _authFetch }: { authFetch: (url: string, opts?: RequestInit) => Promise<Response> }) {
-  // TODO: Use _authFetch for API calls, rename back to authFetch when ready
+function MainContent({ authFetch }: { authFetch: (url: string, opts?: RequestInit) => Promise<Response> }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [streaming, setStreaming] = useState(false)
 
-  async function handleSend(text: string, _asset: unknown) {
-    // TODO: Wire up your orchestrator
+  async function handleSend(text: string) {
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: text }
     setMessages(prev => [...prev, userMsg])
     setStreaming(true)
 
-    // Example: call your orchestrator function
+    // TODO: Wire up your orchestrator via SSE streaming
+    // Example:
     // const res = await authFetch('/.netlify/functions/orchestrator', {
     //   method: 'POST',
     //   headers: { 'Content-Type': 'application/json' },
@@ -63,10 +80,10 @@ function MainContent({ authFetch: _authFetch }: { authFetch: (url: string, opts?
       streaming={streaming}
       error={null}
       onSend={handleSend}
-      welcomeIcon="🚀"
+      welcomeIcon="&#128640;"
       welcomeTitle="Welcome to Your App"
       welcomeDescription="This is a template. Replace with your app's welcome message."
-      placeholder="Type a message…"
+      placeholder="Type a message..."
     />
   )
 }

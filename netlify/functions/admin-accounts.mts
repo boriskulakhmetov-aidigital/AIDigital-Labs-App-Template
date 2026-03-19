@@ -1,20 +1,26 @@
 import type { Context } from '@netlify/functions';
-import { verifyAuth } from './_shared/auth.ts';
-import { getDb } from './_shared/db.ts';
+import { requireAuth, isAdminUser } from './_shared/auth.ts';
+import { supabase } from './_shared/supabase.ts';
 
 export default async (req: Request, _context: Context) => {
   try {
-    const userId = await verifyAuth(req.headers.get('authorization'));
-    const sql = getDb();
+    const { userId } = await requireAuth(req);
+
+    // Verify admin access
+    const admin = await isAdminUser(userId);
+    if (!admin) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const url = new URL(req.url);
 
     // TODO: Implement admin queries
     // The AdminPanel component from the design system calls these patterns:
-    // GET ?domain=...       → return { users: [...] }
-    // GET ?userId=...       → return { sessions: [...] }
-    // GET ?action=set_user_status&userId=...&status=... → update user status
-    // GET ?action=set_org_status&domain=...&status=...  → update org status
-    // GET (no params)       → return { accounts: [...] }
+    // GET ?domain=...       -> return { users: [...] }
+    // GET ?userId=...       -> return { sessions: [...] }
+    // GET ?action=set_user_status&userId=...&status=... -> update user status
+    // GET ?action=set_org_status&domain=...&status=...  -> update org status
+    // GET (no params)       -> return { accounts: [...] }
 
     return Response.json({ accounts: [] });
   } catch (err: any) {
