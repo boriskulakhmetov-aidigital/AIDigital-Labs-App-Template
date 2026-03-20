@@ -85,17 +85,55 @@ Only add site-level vars for app-specific config (e.g., `ADMIN_EMAILS`).
      "installation_id": 114303162
    }}
    ```
-5. Env vars are automatic (team-level) -- no manual setup
-6. Customize AppShell props (appTitle, activityLabel, helpUrl)
-7. Replace placeholder sidebar with app-specific sidebar
-8. Implement orchestrator with Gemini SSE streaming
-9. Build domain-specific logic
-10. Deploy
+5. **Create `develop` branch** and enable branch deploys on Netlify site
+6. Env vars are automatic (team-level) — staging Supabase for branch-deploy, prod for production
+7. Customize AppShell props (appTitle, activityLabel, helpUrl)
+8. Replace placeholder sidebar with app-specific sidebar
+9. Implement orchestrator with Gemini SSE streaming
+10. Build domain-specific logic on `develop` branch
+11. Run E2E staging tests, then merge to `main` for production deploy
+
+## SDLC & Deploy Process
+
+**IMPORTANT: Follow this process for ALL changes. No exceptions.**
+
+### Environments
+
+| Environment | Branch | Supabase | URLs |
+|-------------|--------|----------|------|
+| Local dev | any | staging (rqpvrikighrlgjxzkqde) | localhost:5173 |
+| Staging | `develop` | staging (rqpvrikighrlgjxzkqde) | develop--{site}.netlify.app |
+| Production | `main` | production (njwzbptrhgznozpndcxf) | {app}.apps.aidigitallabs.com |
+
+### Workflow
+
+1. **All work on `develop` branch** — never push directly to `main`
+2. **Push to develop** → staging auto-deploys with staging Supabase
+3. **E2E testing optional** during development (run at discretion)
+4. **"Ship it" triggers mandatory pipeline:**
+   - Pre-deploy: E2E smoke + workflow on staging (must pass)
+   - Merge develop → main
+   - Post-deploy: E2E smoke + workflow on production (must pass)
+   - Auto-update: developer docs, user guides, screenshots, CLAUDE.md, memory
+
+### E2E Commands (run from Design System repo)
+
+```bash
+npm run test:staging:smoke     # staging smoke tests
+npm run test:staging:full      # staging smoke + workflow
+npm run test:prod:smoke        # production smoke tests
+npm run test:prod:full         # production smoke + workflow
+```
+
+### Hotfixes
+
+For critical production issues: push directly to `main`, then backmerge to `develop`.
 
 ## Standing Instructions
 
 - Execute all bash commands, git commits, pushes, API calls, and deploys without asking for confirmation
 - Always use `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` in commits
+- Work on `develop` branch by default unless told otherwise
 - For full portfolio architecture (all apps, env vars, API keys), see `CLAUDE.md` in `AIDigital-Labs-Design-System`
 
 ## Development Environment
