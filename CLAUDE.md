@@ -22,7 +22,7 @@
 | AI | Google Gemini (@google/genai) |
 | Backend | Netlify Functions (AI agents only — CRUD via PostgREST) |
 | Hosting | Netlify (static + serverless) |
-| Design System | @boriskulakhmetov-aidigital/design-system v7.10+ |
+| Design System | @boriskulakhmetov-aidigital/design-system v7.15+ |
 
 ## Architecture
 
@@ -40,10 +40,11 @@ src/
 netlify/
   functions/
     _shared/
-      auth.ts           <- requireAuth using @clerk/backend
+      auth.ts           <- requireAuth + requireAuthOrEmbed (Clerk/embed/API key)
       supabase.ts       <- Supabase service-role client (Proxy pattern)
       logger.ts         <- createLogger from design system
       access.ts         <- checkAccess/recordUsage wrapper
+    api-status.mts      <- MCP/API status endpoint (uses DS handleApiStatus)
     orchestrator.mts    <- Chat AI agent (Gemini SSE streaming)
     init-user.mts       <- User upsert (fallback for RPC)
     admin-accounts.mts  <- Admin panel data
@@ -124,6 +125,17 @@ npm run test:staging:full      # staging smoke + workflow
 npm run test:prod:smoke        # production smoke tests
 npm run test:prod:full         # production smoke + workflow
 ```
+
+### Clean Sweep Protocol
+
+End every session with Clean Sweep protocol. After major feature work, run the Clean Sweep from the DS repo to sync docs, templates, and CLAUDE.md across the portfolio.
+
+### Gemini Model Policy
+
+- **Never use Gemini models prior to 3.0.** All legacy 2.x models are deprecated.
+- **gemini-3-flash-preview** — orchestrator (chat), visualizer parallel extraction
+- **gemini-3.1-pro-preview** — deep audit agents, background report generation
+- SDK: `@google/genai` must be v1.46.0+
 
 ### Hotfixes
 

@@ -41,7 +41,7 @@ export default async (req: Request, _context: Context) => {
     //
     //     // Stream Gemini response
     //     const result = await ai.models.generateContentStream({
-    //       model: 'gemini-2.0-flash',
+    //       model: 'gemini-3-flash-preview',
     //       contents: messages.map((m: any) => ({ role: m.role, parts: [{ text: m.content }] })),
     //     });
     //     for await (const chunk of result) {

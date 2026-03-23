@@ -1,6 +1,42 @@
 import { verifyToken, createClerkClient } from '@clerk/backend';
+import { createClient } from '@supabase/supabase-js';
 import { getUserStatus } from './supabase.js';
 import { log } from './logger.js';
+
+// TODO: Change to your app's identifier
+const EMBED_APP_NAME = 'your-app-name';
+
+/** Authenticate via Clerk JWT, embed token, or API key.
+ *  Embed: X-Embed-Token header → validate_embed_token RPC → userId = "embed:{org_id}"
+ *  API key: X-API-Key header with "aidl_" prefix → userId = "api:{key_prefix}"
+ *  Clerk: Authorization header → standard JWT verification
+ *  Returns { userId, email, isEmbed } or throws on failure. */
+export async function requireAuthOrEmbed(req: Request): Promise<{ userId: string; email: string | null; isEmbed?: boolean }> {
+  // Check embed token
+  const embedToken = req.headers.get('X-Embed-Token');
+  if (embedToken) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) throw new Error('Supabase not configured');
+    const sb = createClient(url, key);
+    const { data } = await sb.rpc('validate_embed_token', {
+      p_token: embedToken,
+      p_app: EMBED_APP_NAME,
+      p_origin: req.headers.get('Origin') || null,
+    });
+    if (!data?.valid) throw new Error('Invalid embed token');
+    return { userId: `embed:${data.org_id || 'anonymous'}`, email: null, isEmbed: true };
+  }
+
+  // Check API key (for API and internal dispatch calls)
+  // Access control is skipped for api: users — they are pre-authorized via key validation
+  const apiKey = req.headers.get('X-API-Key');
+  if (apiKey?.startsWith('aidl_')) {
+    return { userId: `api:${apiKey.substring(5, 13)}`, email: null };
+  }
+
+  return requireAuth(req);
+}
 
 /** Extract and verify the Clerk session token from the Authorization header.
  *  Returns { userId, email } or throws on failure. */
