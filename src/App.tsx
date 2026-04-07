@@ -1,5 +1,5 @@
-import { AppShell, ChatPanel } from '@boriskulakhmetov-aidigital/design-system'
-import type { ChatMessage } from '@boriskulakhmetov-aidigital/design-system'
+import { AppShell, ChatPanel } from '@AiDigital-com/design-system'
+import type { ChatMessage } from '@AiDigital-com/design-system'
 import { createClient } from '@supabase/supabase-js'
 import { useState } from 'react'
 import './App.css'

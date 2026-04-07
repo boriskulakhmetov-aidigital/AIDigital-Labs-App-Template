@@ -8,7 +8,7 @@
 |-------|-------|
 | App | [App Name] |
 | URL | https://[slug].apps.aidigitallabs.com |
-| Repo | `boriskulakhmetov-aidigital/[RepoName]` |
+| Repo | `AiDigital-com/[RepoName]` |
 | Netlify Site ID | `[site-id]` |
 | Purpose | [Brief description] |
 
@@ -19,10 +19,10 @@
 | Frontend | React 19, Vite, TypeScript |
 | Auth | Clerk (@clerk/react, @clerk/backend) |
 | Database | Supabase PostgreSQL (@supabase/supabase-js) — RLS + Realtime |
-| AI | Google Gemini (@google/genai) |
+| AI | LLM Wrapper via DS (`createLLMProvider`) — Gemini/Claude/OpenAI/xAI |
 | Backend | Netlify Functions (AI agents only — CRUD via PostgREST) |
 | Hosting | Netlify (static + serverless) |
-| Design System | @boriskulakhmetov-aidigital/design-system v7.15+ |
+| Design System | @AiDigital-com/design-system v7.39+ |
 
 ## Architecture
 
@@ -72,18 +72,18 @@ Only add site-level vars for app-specific config (e.g., `ADMIN_EMAILS`).
 ## New App Setup Checklist
 
 1. Clone this template and rename
-2. Create GitHub repo under `boriskulakhmetov-aidigital` org
+2. Create GitHub repo under `AiDigital-com` org
 3. Create Netlify site via API under `aidigital-operating-llc` account
 4. **Link Netlify site to GitHub repo** (CRITICAL for auto-deploy):
    ```
    PATCH https://api.netlify.com/api/v1/sites/{site_id}
    Body: { "repo": {
      "provider": "github",
-     "repo": "boriskulakhmetov-aidigital/{REPO_NAME}",
+     "repo": "AiDigital-com/{REPO_NAME}",
      "branch": "main",
      "cmd": "npm run build",
      "dir": "dist",
-     "installation_id": 114303162
+     "installation_id": 120161952
    }}
    ```
 5. **Create `develop` branch** and enable branch deploys on Netlify site
