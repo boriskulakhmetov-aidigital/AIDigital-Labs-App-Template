@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@AiDigital-com/design-system": "^7.39.5",
+    "@AiDigital-com/design-system": "^7.44.9",
     "@clerk/backend": "^3.2.1",
     "@clerk/react": "^6.1.1",
     "@google/genai": "^1.46.0",
