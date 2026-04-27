@@ -108,13 +108,16 @@ src/
 netlify/
   functions/
     _shared/
-      auth.ts           <- Clerk JWT verification (requireAuth)
-      supabase.ts       <- Supabase service-role client (Proxy)
-      logger.ts         <- Structured logging
-      access.ts         <- Tier gating + usage tracking
-    orchestrator.mts    <- Chat AI agent (Gemini SSE)
-    init-user.mts       <- User upsert
-    admin-accounts.mts  <- Admin panel queries
+      auth.ts                       <- Clerk JWT verification (requireAuth)
+      supabase.ts                   <- Supabase service-role client (Proxy)
+      logger.ts                     <- Structured logging
+      access.ts                     <- Tier gating + usage tracking
+    orchestrator.mts                <- Chat AI agent (Gemini SSE streaming)
+    dispatch-handler.mts            <- Accepts request → enqueues pipeline_tasks
+    task-worker.mts                 <- Claims tasks → dispatches to -background
+    run-audit-background.mts        <- Example -background Lambda (responseSchema + strict assembler)
+    init-user.mts                   <- User upsert
+    admin-accounts.mts              <- Admin panel queries
 netlify.toml            <- Build + redirects + security headers
 .env.example            <- Required env vars (copy to .env.local)
 .npmrc                  <- GitHub Packages auth

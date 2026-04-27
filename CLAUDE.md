@@ -141,10 +141,141 @@ End every session with Clean Sweep protocol. After major feature work, run the C
 
 For critical production issues: push directly to `main`, then backmerge to `develop`.
 
+## Mandatory Rules (Portfolio-Wide)
+
+These rules are absolute. Apply them on every change, every PR, every session.
+They were learned from production incidents and skipping them causes real bugs.
+
+### No content fallbacks — EVER
+
+```tsx
+// ❌ NEVER
+<h1>{data.exec?.hero_verdict || 'Strong emotional pull dragged down by weak conversion mechanics.'}</h1>
+<p>{data.summary || 'Generic placeholder analysis text...'}</p>
+
+// ✓ Render conditionally so missing data SURFACES instead of showing fake prose
+{data.exec?.hero_verdict && <h1>{data.exec.hero_verdict}</h1>}
+{data.summary && <p>{data.summary}</p>}
+```
+
+Hardcoded fallback prose masks upstream failures. When the visualizer breaks, every
+broken report renders identical-looking fake analysis and the team can't tell real
+from fake. Acceptable defaults: `''`, `[]`, `0`, `null`, computed values from real
+data, section/page chrome titles. NEVER any "voice" string (verdict, summary,
+headline, recommendation).
+
+### Long-running Lambdas MUST use the `-background` suffix
+
+Netlify Functions v2 ignores `config.background = true`. Only the filename suffix
+activates background mode (15-min budget). Without it, the function runs in
+streaming mode with a 26s hard timeout and dies mid-execution.
+
+```
+✓ aio-anchor-background.mts     — 15-min budget, returns 202 immediately
+✗ aio-anchor.mts                — 26s timeout, will 504 if work takes longer
+```
+
+If task-worker dispatches a function via `await fetch(...)` and that function
+isn't `-background`, the whole chain times out (task-worker → caller → client).
+NM session 51507f5c regression (2026-04-24) was caused by this exact misnaming.
+
+### Strict schema enforcement on LLM JSON output
+
+Two layers of protection — use BOTH where possible:
+
+**1. `responseSchema` at the API level (strongest):**
+```ts
+const result = await llm.generateContent({
+  system: prompt,
+  userParts: [{ text: input }],
+  jsonMode: true,
+  responseSchema: { type: 'object', properties: {...}, required: [...] },
+});
+```
+Gemini physically cannot return fields outside the schema. Used by LRR's
+synthesis call and AIO's review-background.
+
+**2. Explicit destructure in the assembler (defense in depth):**
+```ts
+// ❌ Pass-through — leaks ghost fields the LLM echoed from source markdown
+return { executive_summary: execSummary, ... };
+
+// ✓ Strict destructure — only declared v2 fields survive
+const cleanExec: ExecutiveSummary = {
+  overall_score: authoritativeOverall,
+  hero_verdict: execSummary?.hero_verdict,
+  hero_subtitle: execSummary?.hero_subtitle,
+  // ...explicitly list every field the schema declares
+};
+return { executive_summary: cleanExec, ... };
+```
+
+NM had `text?, score_verified?, critical_actions?, high_value_actions?` declared
+"backward compat"; Gemini occasionally echoed those field names from the source
+markdown and the pass-through assembler persisted them. Frontend got confused
+schema, hardcoded fallback masked the bug for weeks.
+
+### 3 hypotheses before ANY code decision
+
+Bug fixes, feature design, refactors, library choices — generate 3 hypotheses,
+rank by evidence + disruption, pick the least disruptive. Don't just code the
+first idea that comes to mind. Especially: don't reuse approaches that have
+already been investigated and ruled out (webhook-triggered DB writes, polling
+check tasks, batched parallel LLM calls — all tried and failed).
+
+### All async work goes through `pipeline_tasks`
+
+Never use Netlify background functions directly with function-to-function
+fetch calls. The DS provides:
+- `createDispatchHandler({ app, sessionTable, ... })` — accepts the user
+  request, upserts session, enqueues `run_audit` task in `pipeline_tasks`,
+  kicks task-worker, returns 200 in <3s.
+- `createTaskWorker({ app, taskFunctionMap })` — claims tasks from
+  `pipeline_tasks`, dispatches to `-background` functions.
+
+Pipeline stages complete by inserting the next task. No polling. No
+self-re-enqueueing. Event-driven only.
+
+### All LLM calls through `createLLMProvider`
+
+```ts
+import { createLLMProvider } from '@AiDigital-com/design-system/server';
+const llm = createLLMProvider('gemini', process.env.GEMINI_API_KEY!, 'analysis', { supabase });
+```
+
+Every call is metered, logged, cost-tracked. No direct `@google/genai` /
+Anthropic SDK / OpenAI SDK calls in app code.
+
+### Verify deploy IMMEDIATELY after every push
+
+After `git push`, check Netlify deploy state via API. Do NOT continue to the
+next task until deploy shows `ready`. The most-ignored rule in the playbook;
+zero exceptions.
+
+### After cross-repo changes, verify real DB data
+
+When changes flow across function boundaries (logger → DB, dispatch → task-worker
+→ Lambda → DB), query the actual database row 2 minutes after the first test
+run. Check for NULL fields, wrong shape, missing data. If anything is NULL that
+shouldn't be, the fix isn't done.
+
+### Latest models only
+
+`@google/genai` ≥ 1.46.0. `gemini-3-flash-preview` for streaming,
+`gemini-3.1-pro-preview` for analysis. Never use models prior to 3.0. Same
+principle for Claude (sonnet-4-6 / opus-4-7), OpenAI (gpt-5+), xAI (grok-3+).
+
+### DS-first
+
+Before building any component, hook, or server utility — check the DS. If it
+exists, use it. If a prop is missing, propose extending the DS rather than
+forking. After bumping DS, update lock files in ALL consuming apps and verify
+ALL Netlify deploys succeed.
+
 ## Standing Instructions
 
 - Execute all bash commands, git commits, pushes, API calls, and deploys without asking for confirmation
-- Always use `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` in commits
+- Always use `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` in commits
 - Work on `develop` branch by default unless told otherwise
 - For full portfolio architecture (all apps, env vars, API keys), see `CLAUDE.md` in `AIDigital-Labs-Design-System`
 
