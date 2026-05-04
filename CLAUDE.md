@@ -22,7 +22,7 @@
 | AI | LLM Wrapper via DS (`createLLMProvider`) — Gemini/Claude/OpenAI/xAI |
 | Backend | Netlify Functions (AI agents only — CRUD via PostgREST) |
 | Hosting | Netlify (static + serverless) |
-| Design System | @AiDigital-com/design-system v7.39+ |
+| Design System | @AiDigital-com/design-system v7.62+ |
 
 ## Architecture
 
@@ -44,11 +44,14 @@ netlify/
       supabase.ts       <- Supabase service-role client (Proxy pattern)
       logger.ts         <- createLogger from design system
       access.ts         <- checkAccess/recordUsage wrapper
-    api-status.mts      <- MCP/API status endpoint (uses DS handleApiStatus)
-    orchestrator.mts    <- Chat AI agent (Gemini SSE streaming)
-    init-user.mts       <- User upsert (fallback for RPC)
-    admin-accounts.mts  <- Admin panel data
-netlify.toml            <- Build config + redirects (/help, SPA fallback)
+    api-status.mts            <- MCP/API status endpoint (uses DS handleApiStatus)
+    orchestrator.mts          <- Chat AI agent (LLM wrapper, SSE streaming)
+    dispatch-handler.mts      <- DS createDispatchHandler — enqueues pipeline_tasks
+    task-worker.mts           <- DS createTaskWorker — claims + dispatches tasks
+    run-audit-background.mts  <- Example -background Lambda (responseSchema demo)
+    save-session.mts          <- Atomic merge endpoint (DS mergeSession)
+    get-sessions.mts          <- User-scoped session list (uses requireAuth)
+netlify.toml                  <- Build config + redirects (/help, /embed, SPA fallback)
 ```
 
 ## Key Patterns
@@ -83,7 +86,7 @@ Only add site-level vars for app-specific config (e.g., `ADMIN_EMAILS`).
      "branch": "main",
      "cmd": "npm run build",
      "dir": "dist",
-     "installation_id": 120161952
+     "installation_id": 114303162
    }}
    ```
 5. **Create `develop` branch** and enable branch deploys on Netlify site
@@ -275,7 +278,7 @@ ALL Netlify deploys succeed.
 ## Standing Instructions
 
 - Execute all bash commands, git commits, pushes, API calls, and deploys without asking for confirmation
-- Always use `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` in commits
+- Always use `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` in commits
 - Work on `develop` branch by default unless told otherwise
 - For full portfolio architecture (all apps, env vars, API keys), see `CLAUDE.md` in `AIDigital-Labs-Design-System`
 

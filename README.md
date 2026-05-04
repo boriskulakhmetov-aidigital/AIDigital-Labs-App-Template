@@ -6,7 +6,7 @@
 ## What This Template Provides
 
 - React 19 + Vite + TypeScript boilerplate
-- `@boriskulakhmetov-aidigital/design-system` v7.10+ pre-wired
+- `@AiDigital-com/design-system` v7.62+ pre-wired
   - `applyTheme(resolveTheme())` in main.tsx
   - `style.css` imported for all component styles
   - `AppShell` wrapping the app (auth, layout, header, admin panel, Supabase Realtime)
@@ -15,15 +15,19 @@
 - Clerk auth (ClerkProvider in main.tsx, AppShell handles auth gates)
 - Supabase integration (client-side via AppShell, server-side via Proxy pattern)
 - Netlify Functions stubs:
-  - `_shared/auth.ts` — Clerk JWT verification (requireAuth)
+  - `_shared/auth.ts` — Clerk JWT + embed token + API key verification (requireAuthOrEmbed)
   - `_shared/supabase.ts` — Supabase service-role client (Proxy pattern)
   - `_shared/logger.ts` — Structured logging via design system
   - `_shared/access.ts` — Tier/status gating + usage tracking
-  - `orchestrator.mts` — Chat AI agent stub (Gemini SSE)
-  - `init-user.mts` — User upsert via Supabase RPC
-  - `admin-accounts.mts` — Admin panel data stub
-- `netlify.toml` with build config, redirects, security headers
-- `.npmrc` for GitHub Packages auth
+  - `api-status.mts` — MCP / API status endpoint (DS `handleApiStatus`)
+  - `orchestrator.mts` — Chat AI agent (DS `createLLMProvider`, SSE streaming)
+  - `dispatch-handler.mts` — DS `createDispatchHandler` — enqueues `pipeline_tasks`
+  - `task-worker.mts` — DS `createTaskWorker` — claims + dispatches tasks
+  - `run-audit-background.mts` — Example `-background` Lambda (responseSchema + strict assembler)
+  - `save-session.mts` — Atomic merge endpoint (DS `mergeSession`)
+  - `get-sessions.mts` — User-scoped session list (DS `requireAuth`)
+- `netlify.toml` with build config, redirects (/help, /embed, SPA fallback), security headers
+- `.npmrc` for GitHub Packages auth (`@AiDigital-com` scope)
 - `.env.example` with required variables (Supabase, Clerk, Gemini)
 - Help page at `/help` (no auth required)
 
@@ -32,7 +36,7 @@
 ### 1. Clone and Rename
 
 ```bash
-git clone https://github.com/boriskulakhmetov-aidigital/AIDigital-Labs-App-Template.git MyNewApp
+git clone https://github.com/AiDigital-com/AIDigital-Labs-App-Template.git MyNewApp
 cd MyNewApp
 rm -rf .git
 git init
@@ -41,7 +45,7 @@ git init
 ### 2. Create GitHub Repo
 
 ```bash
-git remote add origin https://github.com/boriskulakhmetov-aidigital/MyNewApp.git
+git remote add origin https://github.com/AiDigital-com/MyNewApp.git
 git add -A && git commit -m "feat: initial app from template"
 git branch -M main && git push -u origin main
 ```
@@ -61,7 +65,7 @@ Without this, pushes to main will NOT trigger auto-deploys:
 PATCH https://api.netlify.com/api/v1/sites/{site_id}
 Body: { "repo": {
   "provider": "github",
-  "repo": "boriskulakhmetov-aidigital/{REPO_NAME}",
+  "repo": "AiDigital-com/{REPO_NAME}",
   "branch": "main",
   "cmd": "npm run build",
   "dir": "dist",
@@ -108,24 +112,25 @@ src/
 netlify/
   functions/
     _shared/
-      auth.ts                       <- Clerk JWT verification (requireAuth)
+      auth.ts                       <- Clerk JWT + embed + API key (requireAuthOrEmbed)
       supabase.ts                   <- Supabase service-role client (Proxy)
       logger.ts                     <- Structured logging
       access.ts                     <- Tier gating + usage tracking
-    orchestrator.mts                <- Chat AI agent (Gemini SSE streaming)
+    api-status.mts                  <- MCP / API status endpoint (DS handleApiStatus)
+    orchestrator.mts                <- Chat AI agent (LLM wrapper, SSE streaming)
     dispatch-handler.mts            <- Accepts request → enqueues pipeline_tasks
     task-worker.mts                 <- Claims tasks → dispatches to -background
     run-audit-background.mts        <- Example -background Lambda (responseSchema + strict assembler)
-    init-user.mts                   <- User upsert
-    admin-accounts.mts              <- Admin panel queries
+    save-session.mts                <- Atomic merge endpoint (DS mergeSession)
+    get-sessions.mts                <- User-scoped session list (DS requireAuth)
 netlify.toml            <- Build + redirects + security headers
 .env.example            <- Required env vars (copy to .env.local)
-.npmrc                  <- GitHub Packages auth
+.npmrc                  <- GitHub Packages auth (@AiDigital-com scope)
 ```
 
 ## Design System Components Available
 
-Import from `@boriskulakhmetov-aidigital/design-system`:
+Import from `@AiDigital-com/design-system`:
 
 **App Shell:** AppShell, BrandMark, ThemeToggle, LogoRenderer
 **Chat:** ChatPanel, MessageBubble, UploadZone
