@@ -6,7 +6,9 @@
 ## What This Template Provides
 
 - React 19 + Vite + TypeScript boilerplate
-- `@AiDigital-com/design-system` v7.62+ pre-wired
+- Helix two-package design system pre-wired:
+  - `@AiDigital-com/design-system-client` — components, themes, tokens, CSS
+  - `@AiDigital-com/design-system-sdk` — API client, Realtime, hooks (browser + server entries)
   - `applyTheme(resolveTheme())` in main.tsx
   - `style.css` imported for all component styles
   - `AppShell` wrapping the app (auth, layout, header, admin panel, Supabase Realtime)
@@ -130,18 +132,45 @@ netlify.toml            <- Build + redirects + security headers
 
 ## Design System Components Available
 
-Import from `@AiDigital-com/design-system`:
+The DS now ships as two packages (Helix architecture). Import surfaces:
+
+### `@AiDigital-com/design-system-client` (UI surface)
 
 **App Shell:** AppShell, BrandMark, ThemeToggle, LogoRenderer
 **Chat:** ChatPanel, MessageBubble, UploadZone
-**Navigation:** Sidebar (renderItem), AdminPanel (self-contained)
-**Reports:** ReportViewer, DownloadBar, ShareBar, ReportSidebar
-**Primitives:** ScorePill, SeverityBadge, PriorityBadge, SectionDivider, PageHeader, BriefSection/BriefRow, CollapsibleRow, ActionCard, KpiTile, AssetPreview, ReportTable, ProtocolBlock
-**Visualization:** ValueEffortChart, ImpactTable, SVGRing, StepList, ProgressBar, Spinner
-**Utilities:** renderMarkdown, downloadMarkdown, downloadPDF, slugify, groupByDate
+**Navigation:** Sidebar (renderItem), AdminTable, ReportSidebar, ReportTopbar, Rail
+**Reports:** ReportViewer, ReportShell, ReportTable, ReportStatusCard, ReportBlock, DownloadBar, ShareBar
+**Primitives:** Badge, ScorePill, SeverityBadge, PriorityBadge, EngagementBadge, StatusBadge, SectionDivider, PageHeader, BriefSection/BriefRow, CollapsibleRow, ActionCard, KpiTile, AssetPreview, ProtocolBlock
+**Job/Asset:** JobCard, JobProgressHeader, CreativeAssetGrid, CreativeAssetTile, JobErrorState, ArtifactsPanel, FeedbackWidget, PartialPreview, PipelineProgress
+**Visualization:** ValueEffortChart, ScatterPlot2D, SVGRing, StepList, ProgressBar, Spinner
+**Utilities:** renderMarkdown, downloadMarkdown, downloadPDF, slugify, groupByDate, repairJson, handleApiStatus
 **Themes:** applyTheme, resolveTheme, aiLabsTheme, aiDigitalTheme, ThemeConfig
 **Pages:** HelpPage
-**Server:** createLogger (logger), checkAccess, recordUsage, getUserOrgId (access)
+
+### `@AiDigital-com/design-system-sdk` (API/Realtime, browser-agnostic)
+
+`createSupabaseClient`, `SupabaseClient`, `RealtimeManager`, `createHelixClient`,
+`parseSSEStream`, `uploadToSupabase`, `JobStatus`, `JobStatusMeta`
+
+### `@AiDigital-com/design-system-sdk/react` (React hooks + provider)
+
+`useJob` (replaces deprecated `useJobStatus` + `useVisualizerResult`),
+`useScanProgress`, `useOrchestrator`, `useSessionPersistence`, `useFileUpload`,
+`useShareToken` (replaces `ConnectedShareBar`), `useTheme`, `useAppContext`,
+`HelixProvider`, `useHelixClient`, `useRealtimeManager`, `useAsset`, `useVariantSweep`
+
+### `@AiDigital-com/design-system-sdk/server` (Node-only)
+
+`requireAuth`, `isAdminUser`, `createAccessChecker`, `createDispatchHandler`,
+`createTaskWorker`, `createUploadAssetHandler`, `mergeSession`, `handleApiStatus`,
+`createBrightDataClient`, `createBrightDataWebhookHandler`,
+`createApifyClient`, `createApifyWebhookHandler`,
+`checkAccess`, `recordUsage`, `getUserOrgId`,
+`createLogger`, `logTokenUsage`, `detectSource`, `detectSourceWithOrg`,
+`extractDocumentText`, `createLLMProvider`
+
+For full migration guidance from the legacy `@AiDigital-com/design-system@7.x` package
+see `handoff/HELIX_MIGRATION_PLAYBOOK.md` in the design-system repo.
 
 ## Architecture Reference
 

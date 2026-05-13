@@ -7,10 +7,36 @@
  * 3. Use DS Sidebar component (aidl-sidebar CSS) — not custom sidebar.
  * 4. AppContent renders inside AppShell's children render-prop as Fragment <>.
  * 5. main.tsx: <App /> with NO props. ClerkProvider wraps App.
+ *
+ * HELIX-MIGRATION (2026-05-12) — template migrated to two-package shape:
+ *   - `@AiDigital-com/design-system` → `@AiDigital-com/design-system-client` (UI)
+ *   - SDK hooks → `@AiDigital-com/design-system-sdk/react`
+ *   - `useJobStatus` → `useJob` (reconciled status; see playbook §4.4)
+ *
+ * KNOWN FOLLOW-UPS (alpha-only drift — typecheck cleanly once these land):
+ *   a. `SidebarItem` type is not yet re-exported from `-client`; alpha uses
+ *      `Sidebar<TItem>` generic. Type your sidebar items locally for now.
+ *   b. `SupabaseClient` type is not yet re-exported from `-sdk`; import from
+ *      `@supabase/supabase-js` directly until the SDK adds the re-export.
+ *   c. `useSessionPersistence` and `useOrchestrator` have not landed in the
+ *      published SDK alpha yet. Keep using them via the legacy DS in any app
+ *      not ready to cut over, OR wait for the next SDK alpha drop.
+ *   d. `ChatPanel.streaming` was renamed to `isStreaming` in Helix-UI; flip
+ *      the prop name when you wire your orchestrator.
+ *   e. `AppShell` keeps its render-prop API; the optional `useAppContext()`
+ *      refactor (playbook §4.5) is deferred until `HelixProvider` is wired.
+ *   f. `HelpPage` component has not landed in `-client` yet — see
+ *      pages/HelpPage.tsx for the equivalent migration note.
+ *
+ * Full migration playbook: `handoff/HELIX_MIGRATION_PLAYBOOK.md` in the DS repo.
  */
 import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from 'react'
-import { AppShell, ChatPanel, Sidebar, useJobStatus, useSessionPersistence } from '@AiDigital-com/design-system'
-import type { SupabaseClient, SidebarItem } from '@AiDigital-com/design-system'
+import { AppShell, ChatPanel, Sidebar } from '@AiDigital-com/design-system-client'
+// HELIX-MIGRATION: useJobStatus is deprecated — use useJob (reconciled status) from -sdk/react
+// See: handoff/HELIX_MIGRATION_PLAYBOOK.md §4.4 in the design-system repo.
+import { useJob, useSessionPersistence } from '@AiDigital-com/design-system-sdk/react'
+import type { SidebarItem } from '@AiDigital-com/design-system-client'
+import type { SupabaseClient } from '@AiDigital-com/design-system-sdk'
 import { createClient } from '@supabase/supabase-js'
 import { SignIn, UserButton, useAuth } from '@clerk/react'
 import './App.css'

@@ -22,7 +22,7 @@
 | AI | LLM Wrapper via DS (`createLLMProvider`) — Gemini/Claude/OpenAI/xAI |
 | Backend | Netlify Functions (AI agents only — CRUD via PostgREST) |
 | Hosting | Netlify (static + serverless) |
-| Design System | @AiDigital-com/design-system v7.62+ |
+| Design System | Helix two-package shape: `@AiDigital-com/design-system-client` (UI) + `@AiDigital-com/design-system-sdk` (API/hooks/server) |
 
 ## Architecture
 
@@ -242,7 +242,7 @@ self-re-enqueueing. Event-driven only.
 ### All LLM calls through `createLLMProvider`
 
 ```ts
-import { createLLMProvider } from '@AiDigital-com/design-system/server';
+import { createLLMProvider } from '@AiDigital-com/design-system-sdk/server';
 const llm = createLLMProvider('gemini', process.env.GEMINI_API_KEY!, 'analysis', { supabase });
 ```
 

@@ -13,7 +13,7 @@
  *
  * TODO: Replace EXAMPLE_SCHEMA + system prompt + assembler with your domain.
  */
-import { createLLMProvider } from '@AiDigital-com/design-system/server';
+import { createLLMProvider } from '@AiDigital-com/design-system-sdk/server';
 import { createClient } from '@supabase/supabase-js';
 import { log } from './_shared/logger.js';
 

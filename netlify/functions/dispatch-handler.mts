@@ -14,7 +14,7 @@
  *
  * TODO: Set `app` slug + `sessionTable` to match your app.
  */
-import { createDispatchHandler } from '@AiDigital-com/design-system/server';
+import { createDispatchHandler } from '@AiDigital-com/design-system-sdk/server';
 
 export default createDispatchHandler({
   app: 'your-app-name',          // e.g. 'campaign-brief-wizard'

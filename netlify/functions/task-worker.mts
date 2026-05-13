@@ -15,7 +15,7 @@
  *
  * TODO: Map your app's task_types to function names.
  */
-import { createTaskWorker } from '@AiDigital-com/design-system/server';
+import { createTaskWorker } from '@AiDigital-com/design-system-sdk/server';
 
 export default createTaskWorker({
   app: 'your-app-name',

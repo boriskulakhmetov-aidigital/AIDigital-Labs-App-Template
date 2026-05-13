@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
-import { HelpPage, applyTheme, resolveTheme } from '@AiDigital-com/design-system';
-import '@AiDigital-com/design-system/style.css';
+// HELIX-MIGRATION (2026-05-12): `HelpPage` has not landed in `-client` alpha yet.
+// Once it ships, this import works as-is. Until then, render your own
+// markdown-driven help page using `renderMarkdown` from `-client/utils`.
+import { HelpPage, applyTheme, resolveTheme } from '@AiDigital-com/design-system-client'
+import '@AiDigital-com/design-system-client/style.css';
 
 // TODO: Replace with your app's user guide content
 const GUIDE = `# [App Name] — User Guide
